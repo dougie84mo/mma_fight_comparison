@@ -2,7 +2,8 @@
 
 ### Fight Comparison is a project that helps in users with the analysis of mixed martial arts fights. Most especially UFC.
 
-Comparisons open browsers with videos in order to compare previous fights simultaneously. Highlights, press conference or interviews, and top-finishes if possible. Side-by-side record comparison. Stare down video if available. 
+Comparisons open browsers with videos in order to compare previous fights simultaneously. Highlights, press conference or interviews, and top-finishes if possible. Side-by-side record comparison. 
+Stare down video if available and odds for fight 
 
 1. Start by running the command `python main.py`
 
