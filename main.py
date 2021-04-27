@@ -5,11 +5,9 @@ from pyppeteer import launch
 
 SHERDOG_UFC_EVENTS: str = 'https://www.sherdog.com/organizations/Ultimate-Fighting-Championship-UFC-2'
 SHERDOG: str = 'https://www.sherdog.com'
-# UFC_EVENTS_URL = 'https://www.ufc.com/events'
-# UFC_EVENTS_WRAPPER: str = "c-listing__wrapper--horizontal-tabs horizontal-tabs-panes"
-PRODUCTION: bool = False
-MAX_EVENTS = 20
-
+PRODUCTION: bool = True
+SEARCH_TERMS = ['highlights', 'free fight']
+TIMEOUT_UNTIL_LOAD_FLAG = {'waitUntil': 'load', 'timeout': 0}
 
 # Possible RECORD standard for fighters = https://www.sherdog.com/fighter/$NAME
 
@@ -28,7 +26,7 @@ class UFC:
     async def ufc_fight_comparison(self):
         browser = await pyppeteer.launch(headless=PRODUCTION, defaultViewport=None)
         page = await browser.newPage()
-        await page.goto(SHERDOG_UFC_EVENTS)
+        await page.goto(SHERDOG_UFC_EVENTS, TIMEOUT_UNTIL_LOAD_FLAG)
         await page.waitForSelector("#upcoming_tab")
         events_rows = await page.querySelectorAll("#upcoming_tab tr.odd, #upcoming_tab tr.even")
         # print(events_rows)
@@ -44,7 +42,7 @@ class UFC:
 
         self._event = UFC.choosable_list(self.__events, "Which event are you looking for?  ")
         print(f'{SHERDOG}{self._event}')
-        await page.goto(f'{SHERDOG}{self._event}')
+        await page.goto(f'{SHERDOG}{self._event}', TIMEOUT_UNTIL_LOAD_FLAG)
         await asyncio.sleep(5)
         await page.waitForSelector(".col_left")
         # No need for headline fight for now
@@ -60,8 +58,12 @@ class UFC:
             }''')
             fight_name = f'{fighter_one[1]} v. {fighter_two[1]}'
             self.__fights[fight_name] = (fighter_one, fighter_two)
-        self._fight = self.choosable_list(self.__fights, "Which fight would you like to repair?  ")
-        print(self._fight)
+        self._fight = self.choosable_list(self.__fights, "Which fight would you like to research?  ")
+        for fighter in self._fight:
+            print(fighter)
+            await UFC.open_fighter_browser(fighter)
+
+        await asyncio.sleep(60*20)
         await browser.close()
 
     @staticmethod
@@ -70,18 +72,19 @@ class UFC:
         name = fighter[1]
         browser = await pyppeteer.launch(headless=False, defaultViewport=None)
         pages = await browser.pages()
-        await pages[0].goto(f'{SHERDOG}{url}')
-        #  I need youtube
-        #    - 'Search'
-        #    - 'Highlights'
-        #    - 'Top - Finishes'
-        #    - 'Free Fight'
+        await pages[0].goto(f'{SHERDOG}{url}', TIMEOUT_UNTIL_LOAD_FLAG)
+        for term in SEARCH_TERMS:
+            await UFC.fighter_video(browser, name, term)
 
     @staticmethod
-    async def search_fighter_term_videos(browser, fighter_name, search_term="highlights"):
+    async def fighter_video(browser, fighter_name, search_term="highlights"):
+        search_for = f'{fighter_name} {search_term}'
         page = await browser.newPage()
+        print(search_for)
         await page.goto("https://youtube.com")
-        
+        await page.waitForSelector("#search")
+        await page.type("#search", search_for)
+        await page.click("#search-icon-legacy")
 
 
 
