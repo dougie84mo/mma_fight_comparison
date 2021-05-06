@@ -45,9 +45,15 @@ class UFC:
         await page.goto(f'{SHERDOG}{self._event}', TIMEOUT_UNTIL_LOAD_FLAG)
         await asyncio.sleep(5)
         await page.waitForSelector(".col_left")
-        # No need for headline fight for now
-        main = await page.querySelector('.module.fight_card')
-        # Lets try this one first.
+        # TODO: Main Event
+        headliner_js = '''(el) => {
+            let name = el.querySelector("h3 a")
+            return [name.getAttribute("href"), name.querySelector("span").innerText]
+        }'''
+        headliner_one = await page.querySelectorEval('div.fighter.left_side', headliner_js)
+        headliner_two = await page.querySelectorEval('div.fighter.right_side', headliner_js)
+        self.__fights[UFC.fighter_name(headliner_one, headliner_two)] = (headliner_one, headliner_two)
+
         card_fights = await page.querySelectorAll('.module.event_match tr.odd, tr.even')
         for fight in card_fights:
             fighter_one = await fight.querySelectorEval('td.text_right a', '''(el) => {
@@ -56,7 +62,7 @@ class UFC:
             fighter_two = await fight.querySelectorEval('td.text_left a', '''(el) => {
                 return [el.getAttribute("href"), el.querySelector("span").innerText]
             }''')
-            fight_name = f'{fighter_one[1]} v. {fighter_two[1]}'
+            fight_name = UFC.fighter_name(fighter_one, fighter_two)
             self.__fights[fight_name] = (fighter_one, fighter_two)
         self._fight = self.choosable_list(self.__fights, "Which fight would you like to research?  ")
         for fighter in self._fight:
@@ -65,6 +71,10 @@ class UFC:
 
         await asyncio.sleep(60*20)
         await browser.close()
+
+    @staticmethod
+    def fighter_name(fighter_one, fighter_two):
+        return f'{fighter_one[1]} v. {fighter_two[1]}'
 
     @staticmethod
     async def open_fighter_browser(fighter: list):
