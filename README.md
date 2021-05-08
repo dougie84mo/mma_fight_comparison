@@ -5,7 +5,7 @@
 Comparisons open browsers with videos in order to compare previous fights simultaneously. Highlights, press conference or interviews, and top-finishes if possible. Side-by-side record comparison. 
 Stare down video if available and odds for fight 
 
-1. Start by running the command `python main.py`
+1. Start by running the command `python ufc.py`
 
 2. Input the UFC Fight event that you would like to analyze, and then input the fight in that event. 
 
