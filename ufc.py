@@ -64,7 +64,7 @@ class UFC:
             }''')
             fight_name = UFC.fighter_name(fighter_one, fighter_two)
             self.__fights[fight_name] = (fighter_one, fighter_two)
-        self._fight = self.choosable_list(self.__fights, "Which fight would you like to research?  ")
+        self._fight = self.choosable_list(self.__fights, "Which fight would you like to research? ")
         for fighter in self._fight:
             print(fighter)
             await UFC.open_fighter_browser(fighter)
@@ -90,13 +90,18 @@ class UFC:
     async def fighter_video(browser, fighter_name, search_term="highlights"):
         search_for = f'{fighter_name} {search_term}'
         page = await browser.newPage()
-        print(search_for)
         await page.goto("https://youtube.com")
         await page.waitForSelector("#search")
         await page.type("#search", search_for)
+        await asyncio.sleep(4)
         await page.click("#search-icon-legacy")
-
-
+        print(search_for)
+        if search_term == "highlights":
+            await page.waitForSelector("ytd-video-renderer")
+            await asyncio.sleep(2)
+            await page.click("ytd-video-renderer")
+            await asyncio.sleep(4)
+            await page.keyboard.press("m")
 
     @staticmethod
     def choosable_list(choices: dict, question: str = 'What choice do you pick?'):
