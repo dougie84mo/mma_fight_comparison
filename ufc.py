@@ -19,16 +19,12 @@ HEADLINER_JS = '''(el) => {
 
 
 class UFC:
-    __events = None
+    __events = {}
     _event = None
     __fights = {}
     _fight = None
 
     def __init__(self):
-
-        with open('cache.json') as cache_file:
-            cache_json = json.load(cache_file)
-            self.__events = cache_json
 
         try:
             loop = asyncio.get_event_loop()
@@ -45,7 +41,9 @@ class UFC:
         page = await browser.newPage()
         arg_len = len(args)
         event = int(args[1]) if arg_len >= 2 else -1
-        if event == -1 or event not in self.__events:
+        print(event == -1)
+        if event == -1:
+            print(event == -1)
             await page.goto(SHERDOG_UFC_EVENTS, TIMEOUT_UNTIL_LOAD_FLAG)
             await page.waitForSelector("#upcoming_tab")
             events_rows = await page.querySelectorAll("#upcoming_tab tr.odd, #upcoming_tab tr.even")
@@ -59,9 +57,15 @@ class UFC:
                                 }''')
                 event_name = f'{event_date} {event_td[1]}'
                 self.__events[event_name] = event_td[0]
+
             self._event = UFC.choosable_list(self.__events, "Which event are you looking for?  ")
+            with open('cache.json', 'w') as cache_file:
+                json.dump(self.__events, cache_file)
         else:
-            self._event = self.__events[event]
+            with open('cache.json') as cache_file:
+                cache_json = json.load(cache_file)
+                self.__events = cache_json
+            self._event = UFC.get_choice(self.__events, event)
             print(f'{SHERDOG}{self._event}')
         print(self._event)
         await page.goto(f'{SHERDOG}{self._event}', TIMEOUT_UNTIL_LOAD_FLAG)
@@ -140,6 +144,14 @@ class UFC:
             else:
                 print('Choice is not available')
         return answer
+
+    @staticmethod
+    def get_choice(choices, event_num):
+        temp = []
+        for choice, rv in choices.items():
+            temp.append(choice)
+        temp_id = event_num if len(temp) - 1 >= event_num >= 0 else 0
+        return choices[temp[temp_id]]
 
 
 # Press the green button in the gutter to run the script.
